@@ -1,16 +1,43 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import { fixupConfigRules } from '@eslint/compat'
+import { FlatCompat } from '@eslint/eslintrc'
+import js from '@eslint/js'
+import { defineConfig } from 'eslint/config'
+import simpleImportSort from 'eslint-plugin-simple-import-sort'
 
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 const compat = new FlatCompat({
   baseDirectory: __dirname,
-});
+  recommendedConfig: js.configs.recommended,
+  allConfig: js.configs.all,
+})
 
-const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
-];
+export default defineConfig([
+  {
+    extends: fixupConfigRules(
+      compat.extends(
+        '@rocketseat/eslint-config/react',
+        'eslint:recommended',
+        'plugin:react/recommended',
+        'plugin:react-hooks/recommended',
+        'plugin:@typescript-eslint/recommended',
+        'prettier',
+      ),
+    ),
 
-export default eslintConfig;
+    plugins: {
+      'simple-import-sort': simpleImportSort,
+    },
+
+    rules: {
+      'prettier/prettier': 'error',
+      'no-unused-vars': 'warn',
+      'react/react-in-jsx-scope': 'off',
+      '@typescript-eslint/no-explicit-any': 'warn',
+      'simple-import-sort/imports': 'error',
+    },
+  },
+])
